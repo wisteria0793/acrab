@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+:root {
+  /* Friendly & Clean Light Theme */
+  --background: 210 20% 98%;
+  /* Soft cool white */
+  --foreground: 222 47% 11%;
+  /* Dark blue-grey for text */
+
+  /* Primary: Warm Orange/Coral for friendliness or Soft Blue for trust */
+  /* Let's go with a Soft Trust Blue but warmer than the tech blue */
+  --primary: 215 90% 45%;
+  --primary-foreground: 210 40% 98%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 40%;
+
+  --accent: 35 90% 55%;
+  /* Warm Orange for highlights */
+  --accent-foreground: 0 0% 100%;
+
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 215 90% 45%;
+}
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--color-card-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-border: hsl(var(--border));
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Card Style replacing glass-panel */
+.glass-panel {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  /* Soft shadow */
+  border: 1px solid var(--color-border);
+}
+
+/* Friendly Button Style replacing glass-button */
+.glass-button {
+  background: white;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.glass-button:hover {
+  background: var(--color-muted);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.glass-button:active {
+  transform: translateY(0);
+}
