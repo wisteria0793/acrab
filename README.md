@@ -89,3 +89,7 @@
     *   *メリット*: コミュニティ感の醸成。
 *   **近隣店舗クーポン**:
     *   地域の飲食店と提携したQRクーポンの配布。
+
+## 🤖 Development with Antigravity
+This project is being developed with the assistance of **Antigravity**, an advanced agentic coding assistant by Google DeepMind.
+Antigravity helps with code generation, architecture planning, and complex refactoring tasks, accelerating the development process of this guest experience platform.
