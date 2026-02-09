@@ -1,21 +1,53 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, ArrowLeft, Bot, User, Sparkles } from 'lucide-react';
+import { Send, ArrowLeft, Bot, User, Sparkles, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import TextareaAutosize from 'react-textarea-autosize';
 
-type Message = {
-    role: 'user' | 'assistant';
-    content: string;
-};
+import { createConciergeSession, sendConciergeMessage, Message } from '@/lib/api/client';
+import { useCheckInStore } from '@/lib/store/check-in';
+
+const SUGGESTED_QUESTIONS = [
+    "Wi-Fi Password?",
+    "Check-out time?",
+    "Near by restaurants?",
+    "How to use AC?",
+    "Luggage storage?"
+];
 
 export default function ChatPage() {
-    const [messages, setMessages] = useState<Message[]>([
-        { role: 'assistant', content: 'Hello! I am your AI concierge. How can I help you today? You can ask me about amenities, local restaurants, or how to use the appliances.' }
-    ]);
+    const { booking } = useCheckInStore();
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [sessionId, setSessionId] = useState<number | null>(null);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const initSession = async () => {
+            if (!booking?.id) return;
+            try {
+                const session = await createConciergeSession(booking.id);
+                setSessionId(session.id);
+                setMessages(session.messages);
+            } catch (error) {
+                console.error('Failed to init session:', error);
+                setMessages([{
+                    id: 0,
+                    role: 'assistant',
+                    content: 'Sorry, I could not connect to the concierge service. Please check your connection.',
+                    created_at: new Date().toISOString()
+                }]);
+            }
+        };
+
+        if (!sessionId) {
+            initSession();
+        }
+    }, [booking?.id, sessionId]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -25,87 +57,128 @@ export default function ChatPage() {
         scrollToBottom();
     }, [messages]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!input.trim() || isLoading) return;
+    const handleSendMessage = async (content: string) => {
+        if (!content.trim() || isLoading || !sessionId) return;
 
-        const userMessage: Message = { role: 'user', content: input };
-        setMessages(prev => [...prev, userMessage]);
+        const userMessageContent = content;
+        const tempUserMessage: Message = {
+            id: Date.now(),
+            role: 'user',
+            content: userMessageContent,
+            created_at: new Date().toISOString()
+        };
+
+        setMessages(prev => [...prev, tempUserMessage]);
         setInput('');
         setIsLoading(true);
 
         try {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages: [...messages, userMessage] }),
-            });
-
-            const data = await response.json();
-            setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
-        } catch {
-            setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I am having trouble connecting right now. Please try again later.' }]);
+            const responseMessage = await sendConciergeMessage(sessionId, userMessageContent);
+            setMessages(prev => [...prev, responseMessage]);
+        } catch (error) {
+            console.error('Failed to send message:', error);
+            setMessages(prev => [...prev, {
+                id: Date.now() + 1,
+                role: 'assistant',
+                content: 'Sorry, I am having trouble connecting right now. Please try again later.',
+                created_at: new Date().toISOString()
+            }]);
         } finally {
             setIsLoading(false);
         }
     };
 
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        handleSendMessage(input);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage(input);
+        }
+    };
+
     return (
-        <div className="flex flex-col h-screen relative overflow-hidden bg-black/90">
+        <div className="flex flex-col h-screen relative overflow-hidden bg-zinc-950 text-zinc-100 font-sans selection:bg-purple-500/30">
             {/* Background */}
             <div className="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
-                <div className="absolute bottom-0 left-0 w-full h-[50%] bg-purple-900/10 blur-[100px]" />
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-900/20 blur-[120px] rounded-full mix-blend-screen" />
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-900/10 blur-[120px] rounded-full mix-blend-screen" />
             </div>
 
-            <header className="flex items-center gap-4 p-4 glass-panel border-b border-white/5 z-10 shrink-0">
-                <Link href="/" className="glass-button w-10 h-10 rounded-full flex items-center justify-center">
+            <header className="flex items-center gap-4 p-4 border-b border-white/5 z-10 shrink-0 bg-zinc-900/80 backdrop-blur-md">
+                <Link href="/" className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors text-zinc-100">
                     <ArrowLeft className="w-5 h-5" />
                 </Link>
                 <div className="flex-1">
-                    <h1 className="text-lg font-bold flex items-center gap-2">
-                        AI Concierge <Sparkles className="w-4 h-4 text-purple-400" />
+                    <h1 className="text-lg font-bold flex items-center gap-2 text-zinc-100">
+                        AI Concierge <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
                     </h1>
                     <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                        <span className="text-xs text-muted-foreground">Online</span>
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                        </span>
+                        <span className="text-xs text-zinc-400">Online</span>
                     </div>
                 </div>
             </header>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-6 scroll-smooth">
+                {messages.length === 0 && !isLoading && (
+                    <div className="flex flex-col items-center justify-center h-full text-zinc-500 space-y-4">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center">
+                            <Bot className="w-8 h-8 text-purple-400" />
+                        </div>
+                        <p className="text-sm">Ask me anything about your stay!</p>
+                    </div>
+                )}
+
                 {messages.map((m, index) => (
                     <div
                         key={index}
-                        className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                        className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
                     >
-                        <div className={`flex items-end gap-2 max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${m.role === 'user' ? 'bg-blue-600/20' : 'bg-purple-600/20'
+                        <div className={`flex items-end gap-3 max-w-[85%] sm:max-w-[75%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-lg ${m.role === 'user'
+                                ? 'bg-gradient-to-br from-blue-600 to-blue-700'
+                                : 'bg-gradient-to-br from-purple-600 to-purple-700'
                                 }`}>
-                                {m.role === 'user' ? <User className="w-4 h-4 text-blue-300" /> : <Bot className="w-4 h-4 text-purple-300" />}
+                                {m.role === 'user' ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-white" />}
                             </div>
 
                             <div
-                                className={`p-4 rounded-2xl ${m.role === 'user'
-                                        ? 'bg-blue-600 text-white rounded-tr-none'
-                                        : 'glass-panel rounded-tl-none border-white/5'
+                                className={`px-4 py-3 rounded-2xl shadow-md ${m.role === 'user'
+                                    ? 'bg-blue-600 text-white rounded-tr-none'
+                                    : 'bg-zinc-800/80 backdrop-blur-sm border border-white/5 text-zinc-100 rounded-tl-none'
                                     }`}
                             >
-                                <p className="text-sm leading-relaxed whitespace-pre-wrap">{m.content}</p>
+                                <div className="prose prose-invert prose-sm max-w-none leading-relaxed">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                        {m.content}
+                                    </ReactMarkdown>
+                                </div>
+                                <div className={`text-[10px] mt-1 opacity-50 flex ${m.role === 'user' ? 'justify-end text-blue-100' : 'justify-start text-zinc-400'}`}>
+                                    {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </div>
                             </div>
                         </div>
                     </div>
                 ))}
+
                 {isLoading && (
-                    <div className="flex justify-start">
-                        <div className="flex items-end gap-2">
-                            <div className="w-8 h-8 rounded-full bg-purple-600/20 flex items-center justify-center shrink-0">
-                                <Bot className="w-4 h-4 text-purple-300" />
+                    <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="flex items-end gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center shrink-0 shadow-lg">
+                                <Bot className="w-4 h-4 text-white" />
                             </div>
-                            <div className="glass-panel p-4 rounded-2xl rounded-tl-none border-white/5">
-                                <div className="flex gap-1">
-                                    <span className="w-2 h-2 bg-white/40 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                                    <span className="w-2 h-2 bg-white/40 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                                    <span className="w-2 h-2 bg-white/40 rounded-full animate-bounce" />
+                            <div className="bg-zinc-800/80 backdrop-blur-sm border border-white/5 px-4 py-3 rounded-2xl rounded-tl-none">
+                                <div className="flex gap-1.5 items-center h-5">
+                                    <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                                    <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                                    <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" />
                                 </div>
                             </div>
                         </div>
@@ -114,18 +187,38 @@ export default function ChatPage() {
                 <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-4 glass-panel border-t border-white/5 shrink-0">
-                <form onSubmit={handleSubmit} className="flex gap-2">
-                    <input
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder="Asking about checkout time..."
-                        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500/50 transition-colors"
-                    />
+            <div className="p-4 bg-zinc-900/50 backdrop-blur-md border-t border-white/5 shrink-0 space-y-3">
+                {/* Suggestions */}
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide mask-linear-fade">
+                    {SUGGESTED_QUESTIONS.map((q, i) => (
+                        <button
+                            key={i}
+                            onClick={() => handleSendMessage(q)}
+                            disabled={isLoading}
+                            className="whitespace-nowrap px-3 py-1.5 rounded-full bg-white/5 hover:bg-purple-500/20 border border-white/10 hover:border-purple-500/30 text-xs sm:text-sm text-zinc-300 hover:text-purple-200 transition-all flex items-center gap-1.5 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+                        >
+                            <MessageSquare className="w-3 h-3" />
+                            {q}
+                        </button>
+                    ))}
+                </div>
+
+                <form onSubmit={handleSubmit} className="flex gap-2 items-end">
+                    <div className="flex-1 relative group">
+                        <TextareaAutosize
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder="Type a message..."
+                            minRows={1}
+                            maxRows={5}
+                            className="w-full bg-black/20 border border-white/10 hover:border-white/20 focus:border-purple-500/50 rounded-xl px-4 py-3 pl-4 pr-10 outline-none transition-colors resize-none text-sm sm:text-base leading-relaxed"
+                        />
+                    </div>
                     <button
                         type="submit"
                         disabled={!input.trim() || isLoading}
-                        className="glass-button w-12 h-12 rounded-xl flex items-center justify-center bg-purple-600/20 hover:bg-purple-600/40 text-purple-200 disabled:opacity-50"
+                        className="w-11 h-11 rounded-xl flex items-center justify-center bg-purple-600 hover:bg-purple-500 text-white disabled:opacity-50 disabled:bg-zinc-800 disabled:text-zinc-500 transition-all shadow-lg active:scale-95 shrink-0"
                     >
                         <Send className="w-5 h-5" />
                     </button>
