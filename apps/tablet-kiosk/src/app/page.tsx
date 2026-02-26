@@ -233,14 +233,12 @@ export default function KioskPage() {
   const [mode, setMode] = useState<'empty' | 'concierge' | 'thankyou'>('empty');
   const [selectedLang, setSelectedLang] = useState('ja');
   const [guideData, setGuideData] = useState<any>(null);
-  const [activeReservation, setActiveReservation] = useState<any>(null);
   const [clickCount, setClickCount] = useState(0);
   const [selectedRule, setSelectedRule] = useState<any>(null);
   const [showFullGuide, setShowFullGuide] = useState(false);
   const [showGacha, setShowGacha] = useState(false); // Renamed from showVoiceChat
   const [isLoadingGuide, setIsLoadingGuide] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -252,7 +250,6 @@ export default function KioskPage() {
     if (mode === 'thankyou') {
       const timer = setTimeout(() => {
         setMode('empty');
-        setActiveReservation(null);
       }, 30000); // 30秒後に自動リセット
       return () => clearTimeout(timer);
     }
@@ -320,51 +317,12 @@ export default function KioskPage() {
       }
     };
 
-    // 現在のアクティブな予約を取得
-    const fetchActiveReservation = async () => {
-      try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-        const res = await fetch(`${apiUrl}/api/reservations/active/?facility_id=${facilityId}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.id) {
-            setActiveReservation(data);
-          } else {
-            setActiveReservation(null);
-          }
-        }
-      } catch (err) {
-        console.error("Error fetching active reservation:", err);
-      }
-    };
-
     fetchGuide();
-    fetchActiveReservation();
   }, [isLoaded, facilityId, router]);
 
-  const handleCheckout = async () => {
-    if (!activeReservation || !activeReservation.id || isCheckingOut) return;
-
-    if (!confirm(selectedLang === 'ja' ? 'チェックアウトしますか？' : 'Do you want to check out?')) {
-      return;
-    }
-
-    setIsCheckingOut(true);
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-      const res = await fetch(`${apiUrl}/api/reservations/${activeReservation.id}/checkout/`, {
-        method: 'POST',
-      });
-      if (res.ok) {
-        setMode('thankyou');
-      } else {
-        alert('Checkout failed. Please try again or contact staff.');
-      }
-    } catch (err) {
-      console.error("Checkout error:", err);
-      alert('Error connecting to server.');
-    } finally {
-      setIsCheckingOut(false);
+  const handleReset = () => {
+    if (confirm(selectedLang === 'ja' ? 'トップ画面に戻りますか？' : 'Back to Home?')) {
+      setMode('empty');
     }
   };
 
@@ -492,48 +450,37 @@ export default function KioskPage() {
             className="w-full h-full flex flex-col"
           >
             {/* 滞在モード用ヘッダー */}
-            <div className="flex justify-center items-center gap-12 md:gap-24 px-8 md:px-12 py-6 bg-black/20 backdrop-blur-sm border-b border-white/5">
-              <div className="flex flex-col items-center gap-1">
-                {activeReservation?.guest_name && (
-                  <>
-                    <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight flex items-center gap-3">
-                      {translate('welcomeGuest', selectedLang, { name: activeReservation.guest_name })}
-                    </h2>
-                    {activeReservation.check_in && activeReservation.check_out && (
-                      <div className="text-neutral-400 text-lg md:text-2xl font-medium flex items-center gap-3 mt-2">
-                        <Calendar size={20} className="text-neutral-500" />
-                        <span>
-                          {(() => {
-                            const [y, m, d] = activeReservation.check_in.split('-').map(Number);
-                            return new Date(y, m - 1, d).toLocaleDateString(selectedLang === 'ja' ? 'ja-JP' : 'en-US', { month: 'short', day: 'numeric' });
-                          })()}
-                        </span>
-                        <span className="text-neutral-600">〜</span>
-                        <span>
-                          {(() => {
-                            const [y, m, d] = activeReservation.check_out.split('-').map(Number);
-                            return new Date(y, m - 1, d).toLocaleDateString(selectedLang === 'ja' ? 'ja-JP' : 'en-US', { month: 'short', day: 'numeric' });
-                          })()}
-                        </span>
-                      </div>
-                    )}
-                  </>
-                )}
+            <div className="flex justify-between items-center px-12 py-8 bg-black/20 backdrop-blur-sm border-b border-white/5">
+              <div className="flex flex-col">
+                <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
+                  {activeGuide.facility_name}
+                </h2>
+                <div className="text-neutral-400 text-lg md:text-xl font-medium mt-1">
+                  Enjoy your stay
+                </div>
               </div>
 
-              <div className="flex justify-center gap-3">
-                {LANGUAGES.map((lang) => (
-                  <button
-                    key={lang.code}
-                    onClick={() => setSelectedLang(lang.code)}
-                    className={`px-4 py-2 rounded-full text-sm transition-all duration-300 ${selectedLang === lang.code
-                      ? 'bg-white text-black font-semibold shadow-[0_0_15px_rgba(255,255,255,0.2)] scale-105'
-                      : 'bg-neutral-900/80 border border-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-800'
-                      }`}
-                  >
-                    {lang.label}
-                  </button>
-                ))}
+              <div className="flex gap-4">
+                <div className="flex justify-center gap-2 mr-8">
+                  {LANGUAGES.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => setSelectedLang(lang.code)}
+                      className={`px-4 py-2 rounded-full text-sm transition-all duration-300 ${selectedLang === lang.code
+                        ? 'bg-white text-black font-semibold shadow-[0_0_15px_rgba(255,255,255,0.2)] scale-105'
+                        : 'bg-neutral-900/80 border border-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-800'
+                        }`}
+                    >
+                      {lang.label}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={handleReset}
+                  className="px-6 py-2 bg-neutral-900 border border-neutral-800 text-neutral-400 rounded-full text-sm hover:bg-neutral-800 hover:text-white transition-all"
+                >
+                  {selectedLang === 'ja' ? '終了' : 'End'}
+                </button>
               </div>
             </div>
 
@@ -557,50 +504,22 @@ export default function KioskPage() {
                 </div>
 
                 {/* 右：チェックアウト */}
-                <button
-                  onClick={handleCheckout}
-                  disabled={isCheckingOut}
-                  className="bg-neutral-900/60 border border-neutral-800 p-6 rounded-3xl backdrop-blur-md flex flex-col justify-center relative overflow-hidden group h-full min-h-[200px] text-left transition-all hover:bg-rose-900/10 hover:border-rose-500/30"
-                >
+                <div className="bg-neutral-900/60 border border-neutral-800 p-6 rounded-3xl backdrop-blur-md flex flex-col justify-center relative overflow-hidden group h-full min-h-[200px] text-left">
                   <div className="absolute -bottom-4 -right-4 text-neutral-800 group-hover:text-neutral-700 transition duration-500"><Clock size={100} /></div>
-                  <h3 className="text-xl md:text-2xl text-neutral-400 mb-6 flex items-center gap-2 relative z-10 font-medium"><div className="p-3 rounded-full bg-rose-500/20"><CheckCircle size={24} className="text-rose-400" /></div> Check-out</h3>
+                  <h3 className="text-xl md:text-2xl text-neutral-400 mb-6 flex items-center gap-2 relative z-10 font-medium"><div className="p-3 rounded-full bg-rose-500/20"><Clock size={24} className="text-rose-400" /></div> Check-out</h3>
                   <div className="z-10 flex flex-col items-center justify-center bg-black/30 w-full rounded-2xl p-6 mt-auto h-full space-y-3">
-                    {isCheckingOut ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <Loader2 className="animate-spin text-rose-400" size={32} />
-                        <span className="text-rose-400 text-sm font-bold animate-pulse">Processing...</span>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="flex flex-col items-center">
-                          <span className="text-neutral-500 text-sm font-bold uppercase tracking-widest mb-1">Check-out Date & Time</span>
-                          {activeReservation?.check_out ? (
-                            <div className="text-2xl md:text-3xl font-bold text-white mb-1">
-                              {(() => {
-                                const [y, m, d] = activeReservation.check_out.split('-').map(Number);
-                                return new Date(y, m - 1, d).toLocaleDateString(selectedLang === 'ja' ? 'ja-JP' : 'en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  weekday: 'short'
-                                });
-                              })()}
-                            </div>
-                          ) : null}
-                          {activeGuide.checkout_time ? (
-                            <div className="text-4xl md:text-6xl font-black text-rose-400 tracking-tighter drop-shadow-[0_0_15px_rgba(244,63,94,0.3)]">
-                              {activeGuide.checkout_time.slice(0, 5)}
-                            </div>
-                          ) : (
-                            <span className="text-neutral-500 text-xl">{translate('notSet', selectedLang)}</span>
-                          )}
+                    <div className="flex flex-col items-center">
+                      <span className="text-neutral-500 text-sm font-bold uppercase tracking-widest mb-1">Check-out Time</span>
+                      {activeGuide.checkout_time ? (
+                        <div className="text-4xl md:text-6xl font-black text-rose-400 tracking-tighter drop-shadow-[0_0_15px_rgba(244,63,94,0.3)]">
+                          {activeGuide.checkout_time.slice(0, 5)}
                         </div>
-                        <div className="pt-2 border-t border-white/5 w-full text-center">
-                          <div className="text-xs text-rose-400 font-bold uppercase tracking-widest group-hover:scale-110 transition-transform">Tap to Check-out</div>
-                        </div>
-                      </>
-                    )}
+                      ) : (
+                        <span className="text-neutral-500 text-xl">{translate('notSet', selectedLang)}</span>
+                      )}
+                    </div>
                   </div>
-                </button>
+                </div>
 
                 {/* ---------- 2段目 ---------- */}
                 {/* 左：Wi-Fi */}
@@ -721,7 +640,6 @@ export default function KioskPage() {
               <button
                 onClick={() => {
                   setMode('empty');
-                  setActiveReservation(null);
                 }}
                 className="mt-16 px-10 py-5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-2xl text-xl transition-all border border-neutral-700"
               >
