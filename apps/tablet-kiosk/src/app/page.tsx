@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { QrCode, Info, MessageSquare, Menu, Globe, ChevronRight, X, Volume2, Clock, Calendar, Map, CheckCircle, Wifi, Loader2, Sparkles, Dices } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useKioskSetup } from '@/hooks/useKioskSetup';
 import GachaModal from '@/components/GachaModal';
@@ -415,8 +416,21 @@ export default function KioskPage() {
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl flex flex-col items-center justify-center relative flex-shrink-0">
-                  <QrCode size={180} className="text-black" strokeWidth={1.5} />
+                <div className="bg-white p-6 rounded-2xl flex flex-col items-center justify-center relative flex-shrink-0 min-w-[212px]">
+                  <QRCodeSVG
+                    value={qrUrl}
+                    size={180}
+                    level="H"
+                    includeMargin={false}
+                    imageSettings={{
+                      src: "/favicon.ico",
+                      x: undefined,
+                      y: undefined,
+                      height: 24,
+                      width: 24,
+                      excavate: true,
+                    }}
+                  />
                   <div className="absolute -bottom-4 bg-blue-600 text-white text-xs px-4 py-1 rounded-full font-bold shadow-lg flex items-center">
                     {translate('scanHere', selectedLang)} <ChevronRight size={14} className="ml-1" />
                   </div>
