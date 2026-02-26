@@ -306,7 +306,7 @@ export default function KioskPage() {
     // バックエンドからガイドデータを取得
     const fetchGuide = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
         const res = await fetch(`${apiUrl}/api/kiosk/guides/?facility_id=${facilityId}`);
         if (!res.ok) throw new Error('Failed to fetch guide');
         const data = await res.json();
@@ -323,7 +323,7 @@ export default function KioskPage() {
     // 現在のアクティブな予約を取得
     const fetchActiveReservation = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
         const res = await fetch(`${apiUrl}/api/reservations/active/?facility_id=${facilityId}`);
         if (res.ok) {
           const data = await res.json();
@@ -347,7 +347,7 @@ export default function KioskPage() {
 
     setIsCheckingOut(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
       const res = await fetch(`${apiUrl}/api/reservations/${activeReservation.id}/checkout/`, {
         method: 'POST',
       });
