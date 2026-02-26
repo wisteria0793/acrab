@@ -327,7 +327,11 @@ export default function KioskPage() {
         const res = await fetch(`${apiUrl}/api/reservations/active/?facility_id=${facilityId}`);
         if (res.ok) {
           const data = await res.json();
-          setActiveReservation(data);
+          if (data && data.id) {
+            setActiveReservation(data);
+          } else {
+            setActiveReservation(null);
+          }
         }
       } catch (err) {
         console.error("Error fetching active reservation:", err);
@@ -339,7 +343,7 @@ export default function KioskPage() {
   }, [isLoaded, facilityId, router]);
 
   const handleCheckout = async () => {
-    if (!activeReservation || isCheckingOut) return;
+    if (!activeReservation || !activeReservation.id || isCheckingOut) return;
 
     if (!confirm(selectedLang === 'ja' ? 'チェックアウトしますか？' : 'Do you want to check out?')) {
       return;
