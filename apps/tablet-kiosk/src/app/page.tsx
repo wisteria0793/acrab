@@ -398,7 +398,8 @@ export default function KioskPage() {
       : activeGuide.welcome_message);
 
   // 動的なQRコードURL (Facility ID と 選択言語 を引き継ぐ)
-  const qrUrl = `https://guest-portal.lesath.com/?facility_id=${facilityId}&lang=${selectedLang}`;
+  // もし Google Form 等の URL が設定されていればそれを使用、なければ従来のチェックイン用
+  const qrUrl = activeGuide.survey_url || `https://guest-portal.lesath.com/?facility_id=${facilityId}&lang=${selectedLang}`;
 
   return (
     <div className="w-full h-full bg-black text-white relative flex flex-col items-center justify-center overflow-hidden font-sans">
