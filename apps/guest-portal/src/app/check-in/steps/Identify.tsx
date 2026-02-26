@@ -22,7 +22,7 @@ export function IdentifyStep() {
     const [newCheckOut, setNewCheckOut] = useState('');
     const [newGuests, setNewGuests] = useState(1);
 
-    const { setStep, setBooking } = useCheckInStore();
+    const { setStep, setBooking, facilityId: storeFacilityId } = useCheckInStore();
     const { language } = useLanguageStore();
     const t = useTranslation(language);
     const searchParams = useSearchParams();
@@ -32,7 +32,9 @@ export function IdentifyStep() {
             setIsLoading(true);
             try {
                 const fid = searchParams.get('fid');
-                const facilityId = fid ? parseInt(fid, 10) : undefined;
+                // Use URL param OR store value
+                const facilityId = fid ? parseInt(fid, 10) : (storeFacilityId || undefined);
+
                 const data = await getArrivalReservations(undefined, facilityId);
                 setReservations(data);
             } catch (error) {
@@ -43,7 +45,7 @@ export function IdentifyStep() {
         };
 
         fetchReservations();
-    }, []);
+    }, [storeFacilityId]);
 
     const handleSelect = (reservation: Reservation) => {
         setBooking(reservation);

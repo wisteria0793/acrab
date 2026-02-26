@@ -1,13 +1,24 @@
 'use client';
 
 import { useState, useEffect, use } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { ArrowLeft, MapPin, ExternalLink, Clock, Globe } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { getTourismSpot, TourismSpot } from '@/lib/api/client';
+import { useLanguageStore } from '@/lib/store/language';
+import { useTranslation } from '@/lib/i18n/dictionaries';
 
 export default function TourismSpotPage({ params }: { params: Promise<{ id: string }> }) {
+    const { language } = useLanguageStore();
+    const dict = useTranslation(language);
+    const t = dict.tourismPage;
+
     const { id } = use(params);
+    const searchParams = useSearchParams();
+    const from = searchParams.get('from');
+    const backHref = from === 'chat' ? '/chat' : '/tourism';
+
     const [spot, setSpot] = useState<TourismSpot | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -38,9 +49,9 @@ export default function TourismSpotPage({ params }: { params: Promise<{ id: stri
     if (!spot) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
-                <p className="text-gray-500 mb-4">Spot not found.</p>
-                <Link href="/tourism" className="text-blue-600 hover:underline">
-                    Back to Guide
+                <p className="text-gray-500 mb-4">{t.detail.notFound}</p>
+                <Link href={backHref} className="text-blue-600 hover:underline">
+                    {dict.common.back}
                 </Link>
             </div>
         );
@@ -80,7 +91,7 @@ export default function TourismSpotPage({ params }: { params: Promise<{ id: stri
                 )}
 
                 <Link
-                    href="/tourism"
+                    href={backHref}
                     className="absolute top-6 left-6 w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors border border-white/20"
                 >
                     <ArrowLeft className="w-5 h-5" />
@@ -88,9 +99,9 @@ export default function TourismSpotPage({ params }: { params: Promise<{ id: stri
 
                 <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6 pt-24">
                     <span className="inline-block px-3 py-1 bg-blue-600/90 text-white text-xs font-bold rounded-lg mb-2 shadow-lg backdrop-blur-sm">
-                        {spot.category_display}
+                        {(spot.category && t.categories[spot.category as keyof typeof t.categories]) || spot.category_display || spot.category}
                     </span>
-                    <h1 className="text-3xl font-bold text-white shadow-sm">{spot.name_en || spot.name}</h1>
+                    <h1 className="text-3xl font-bold text-white shadow-sm">{language !== 'ja' ? (spot.name_en || spot.name) : spot.name}</h1>
                 </div>
             </div>
 
@@ -119,7 +130,7 @@ export default function TourismSpotPage({ params }: { params: Promise<{ id: stri
                         <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-2xl">
                             <MapPin className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
                             <div>
-                                <h3 className="font-semibold text-gray-900 text-sm mb-1">Address</h3>
+                                <h3 className="font-semibold text-gray-900 text-sm mb-1">{t.detail.address}</h3>
                                 <p className="text-sm text-gray-600 leading-relaxed">{spot.address}</p>
                             </div>
                         </div>
@@ -127,7 +138,7 @@ export default function TourismSpotPage({ params }: { params: Promise<{ id: stri
                             <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-2xl">
                                 <Clock className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
                                 <div>
-                                    <h3 className="font-semibold text-gray-900 text-sm mb-1">Opening Hours</h3>
+                                    <h3 className="font-semibold text-gray-900 text-sm mb-1">{t.detail.hours}</h3>
                                     <p className="text-sm text-gray-600 leading-relaxed">{spot.opening_hours}</p>
                                 </div>
                             </div>
@@ -136,9 +147,9 @@ export default function TourismSpotPage({ params }: { params: Promise<{ id: stri
 
                     {/* Description */}
                     <div>
-                        <h2 className="text-lg font-bold text-gray-900 mb-3">About</h2>
+                        <h2 className="text-lg font-bold text-gray-900 mb-3">{t.detail.about}</h2>
                         <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
-                            {spot.description_en || spot.description}
+                            {language !== 'ja' ? (spot.description_en || spot.description) : spot.description}
                         </p>
                     </div>
 
@@ -152,7 +163,7 @@ export default function TourismSpotPage({ params }: { params: Promise<{ id: stri
                                 className="flex items-center justify-center gap-2 py-3 px-4 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors"
                             >
                                 <MapPin className="w-4 h-4" />
-                                Open Map
+                                {t.detail.openMap}
                             </a>
                         )}
                         {spot.url && (
@@ -163,7 +174,7 @@ export default function TourismSpotPage({ params }: { params: Promise<{ id: stri
                                 className="flex items-center justify-center gap-2 py-3 px-4 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/30"
                             >
                                 <Globe className="w-4 h-4" />
-                                Visit Website
+                                {t.detail.website}
                             </a>
                         )}
                     </div>

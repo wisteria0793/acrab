@@ -47,6 +47,41 @@ export const dictionaries: Record<Language, any> = {
                 }
             }
         },
+        amenityPage: {
+            title: "アメニティ",
+            items: {
+                faceTowel: "フェイスタオル",
+                bathTowel: "バスタオル",
+                toothbrush: "歯ブラシ"
+            },
+            requestBtn: "リクエスト",
+            requestingBtn: "リクエスト中...",
+            successMsg: "リクエストを送信しました。スタッフがお持ちします。"
+        },
+        tourismPage: {
+            title: "周辺ガイド",
+            searchPlaceholder: "場所を検索...",
+            categories: {
+                all: "すべて",
+                scenery: "絶景・自然",
+                gourmet: "グルメ",
+                activity: "アクティビティ",
+                shopping: "ショッピング",
+                culture: "文化・芸術",
+                hotspring: "温泉",
+                history: "歴史・旧跡"
+            },
+            viewDetails: "詳細を見る",
+            noSpots: "条件に一致するスポットが見つかりませんでした。",
+            detail: {
+                address: "住所",
+                hours: "営業時間",
+                about: "概要",
+                openMap: "マップを開く",
+                website: "ウェブサイトを開く",
+                notFound: "スポットが見つかりません"
+            }
+        },
         checkIn: {
             steps: {
                 identify: "予約検索",
@@ -150,6 +185,41 @@ export const dictionaries: Record<Language, any> = {
                 }
             }
         },
+        amenityPage: {
+            title: "Amenities",
+            items: {
+                faceTowel: "Face Towel",
+                bathTowel: "Bath Towel",
+                toothbrush: "Toothbrush"
+            },
+            requestBtn: "Request",
+            requestingBtn: "Requesting...",
+            successMsg: "Amenities requested! Staff will bring them shortly."
+        },
+        tourismPage: {
+            title: "Local Guide",
+            searchPlaceholder: "Search for places...",
+            categories: {
+                all: "All",
+                scenery: "Scenery",
+                gourmet: "Gourmet",
+                activity: "Activity",
+                shopping: "Shopping",
+                culture: "Culture",
+                hotspring: "Hot Spring",
+                history: "History"
+            },
+            viewDetails: "View Details",
+            noSpots: "No spots found matching your criteria.",
+            detail: {
+                address: "Address",
+                hours: "Opening Hours",
+                about: "About",
+                openMap: "Open Map",
+                website: "Visit Website",
+                notFound: "Spot not found."
+            }
+        },
         checkIn: {
             steps: {
                 identify: "Find Booking",
@@ -238,6 +308,41 @@ export const dictionaries: Record<Language, any> = {
                 desc: "随时提问",
             },
             checkedInMessage: "您均已办理入住。祝您入住愉快！",
+        },
+        amenityPage: {
+            title: "便利设施",
+            items: {
+                faceTowel: "毛巾",
+                bathTowel: "浴巾",
+                toothbrush: "牙刷"
+            },
+            requestBtn: "请求",
+            requestingBtn: "请求中...",
+            successMsg: "设施请求已发送！工作人员将尽快送达。"
+        },
+        tourismPage: {
+            title: "周边指南",
+            searchPlaceholder: "搜索地点...",
+            categories: {
+                all: "全部",
+                scenery: "风景",
+                gourmet: "美食",
+                activity: "活动",
+                shopping: "购物",
+                culture: "文化",
+                hotspring: "温泉",
+                history: "历史"
+            },
+            viewDetails: "查看详情",
+            noSpots: "没有找到符合您条件的地点。",
+            detail: {
+                address: "地址",
+                hours: "营业时间",
+                about: "关于",
+                openMap: "打开地图",
+                website: "访问网站",
+                notFound: "未找到该地点。"
+            }
         },
         checkIn: {
             steps: {
@@ -328,6 +433,41 @@ export const dictionaries: Record<Language, any> = {
             },
             checkedInMessage: "체크인이 완료되었습니다. 편안한 시간 되세요!",
         },
+        amenityPage: {
+            title: "어메니티",
+            items: {
+                faceTowel: "페이스 타월",
+                bathTowel: "목욕 수건",
+                toothbrush: "칫솔"
+            },
+            requestBtn: "요청",
+            requestingBtn: "요청 중...",
+            successMsg: "어메니티가 요청되었습니다! 직원이 곧 가져다 드릴 것입니다."
+        },
+        tourismPage: {
+            title: "주변 가이드",
+            searchPlaceholder: "장소 검색...",
+            categories: {
+                all: "전체",
+                scenery: "경치",
+                gourmet: "맛집",
+                activity: "액티비티",
+                shopping: "쇼핑",
+                culture: "문화",
+                hotspring: "온천",
+                history: "역사"
+            },
+            viewDetails: "상세 보기",
+            noSpots: "조건에 맞는 장소를 찾을 수 없습니다.",
+            detail: {
+                address: "주소",
+                hours: "영업시간",
+                about: "소개",
+                openMap: "지도 열기",
+                website: "웹사이트 방문",
+                notFound: "장소를 찾을 수 없습니다."
+            }
+        },
         checkIn: {
             steps: {
                 identify: "예약 찾기",
@@ -416,6 +556,41 @@ export const dictionaries: Record<Language, any> = {
                 desc: "ถามอะไรก็ได้",
             },
             checkedInMessage: "คุณเช็คอินเรียบร้อยแล้ว ขอให้มีความสุขกับการเข้าพัก!",
+        },
+        amenityPage: {
+            title: "สิ่งอำนวยความสะดวก",
+            items: {
+                faceTowel: "ผ้าเช็ดหน้า",
+                bathTowel: "ผ้าเช็ดตัว",
+                toothbrush: "แปรงสีฟัน"
+            },
+            requestBtn: "ขอ",
+            requestingBtn: "กำลังขอ...",
+            successMsg: "ขอสิ่งอำนวยความสะดวกเรียบร้อยแล้ว! พนักงานจะนำมาให้เร็วๆ นี้"
+        },
+        tourismPage: {
+            title: "คู่มือท้องถิ่น",
+            searchPlaceholder: "ค้นหาสถานที่...",
+            categories: {
+                all: "ทั้งหมด",
+                scenery: "ทิวทัศน์",
+                gourmet: "ร้านอาหาร",
+                activity: "กิจกรรม",
+                shopping: "ช้อปปิ้ง",
+                culture: "วัฒนธรรม",
+                hotspring: "น้ำพุร้อน",
+                history: "ประวัติศาสตร์"
+            },
+            viewDetails: "ดูรายละเอียด",
+            noSpots: "ไม่พบสถานที่ที่ตรงกับเงื่อนไขของคุณ",
+            detail: {
+                address: "ที่อยู่",
+                hours: "เวลาทำการ",
+                about: "เกี่ยวกับ",
+                openMap: "เปิดแผนที่",
+                website: "เข้าชมเว็บไซต์",
+                notFound: "ไม่พบสถานที่"
+            }
         },
         checkIn: {
             steps: {

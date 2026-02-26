@@ -9,7 +9,7 @@ import { ArrowLeft, LogOut, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function CheckOutPage() {
-    const { isCheckedIn, reset } = useCheckInStore();
+    const { isCheckedIn, reset, booking } = useCheckInStore();
     const { language } = useLanguageStore();
     const t = useTranslation(language);
     const router = useRouter();
@@ -22,8 +22,21 @@ export default function CheckOutPage() {
         // but for now simple check is fine. Ideally wrap in useEffect.
     }
 
-    const handleCheckOut = () => {
+    const handleCheckOut = async () => {
         setIsLoading(true);
+
+        try {
+            if (booking?.id) {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+                await fetch(`${apiUrl}/reservations/${booking.id}/checkout/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            }
+        } catch (error) {
+            console.error("Checkout notification failed", error);
+        }
+
         setTimeout(() => {
             reset(); // Clear store
             setIsLoading(false);

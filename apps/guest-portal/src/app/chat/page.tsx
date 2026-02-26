@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, ArrowLeft, Bot, User, Sparkles, MessageSquare } from 'lucide-react';
+import { Send, ArrowLeft, Bot, User, Sparkles, MessageSquare, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import TextareaAutosize from 'react-textarea-autosize';
 
-import { createConciergeSession, sendConciergeMessage, Message } from '@/lib/api/client';
+import { createConciergeSession, sendConciergeMessage, Message, getTourismSpot, TourismSpot } from '@/lib/api/client';
 import { useCheckInStore } from '@/lib/store/check-in';
 
 const SUGGESTED_QUESTIONS = [
@@ -17,6 +17,59 @@ const SUGGESTED_QUESTIONS = [
     "How to use AC?",
     "Luggage storage?"
 ];
+
+// Rich Card Component for Spots
+function SpotCard({ spotId }: { spotId: number }) {
+    const [spot, setSpot] = useState<TourismSpot | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        getTourismSpot(spotId)
+            .then(data => setSpot(data))
+            .catch(err => console.error("Failed to load spot details", err))
+            .finally(() => setIsLoading(false));
+    }, [spotId]);
+
+    if (isLoading) {
+        return <span className="animate-pulse bg-zinc-800/50 rounded-xl h-24 w-full my-2 border border-white/5 block"></span>;
+    }
+
+    if (!spot) {
+        return null;
+    }
+
+    return (
+        <Link href={`/tourism/${spot.id}?from=chat`} className="block my-3">
+            <span className="bg-zinc-900/80 hover:bg-zinc-800/90 transition-colors rounded-xl overflow-hidden shadow-lg border border-white/10 flex flex-col sm:flex-row max-w-sm sm:max-w-md group">
+                <span className="relative h-32 sm:h-auto sm:w-1/3 shrink-0 bg-zinc-800 overflow-hidden block">
+                    {(spot.main_image?.url || (spot.images && spot.images[0]?.image)) ? (
+                        <img
+                            src={spot.main_image?.url || spot.images[0].image}
+                            alt={spot.name}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                    ) : (
+                        <span className="w-full h-full flex items-center justify-center text-zinc-600 block">
+                            <MapPin className="w-8 h-8" />
+                        </span>
+                    )}
+                    <span className="absolute top-2 left-2 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] font-bold text-white uppercase tracking-wider block">
+                        {spot.category_display || spot.category}
+                    </span>
+                </span>
+                <span className="p-3.5 flex flex-col justify-center flex-1 min-w-0">
+                    <strong className="text-sm font-bold text-white line-clamp-1 mb-1 block">{spot.name_en || spot.name}</strong>
+                    <span className="text-xs text-zinc-400 flex items-center gap-1 mb-2 line-clamp-1 block">
+                        <MapPin className="w-3 h-3 shrink-0 inline" /> {spot.address}
+                    </span>
+                    <span className="text-xs text-zinc-300 line-clamp-2 block overflow-hidden text-ellipsis" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                        {spot.description_en || spot.description}
+                    </span>
+                </span>
+            </span>
+        </Link>
+    );
+}
 
 export default function ChatPage() {
     const { booking } = useCheckInStore();
@@ -101,7 +154,7 @@ export default function ChatPage() {
     };
 
     return (
-        <div className="flex flex-col h-screen relative overflow-hidden bg-zinc-950 text-zinc-100 font-sans selection:bg-purple-500/30">
+        <div className="flex flex-col h-[100dvh] relative overflow-hidden bg-zinc-950 text-zinc-100 font-sans selection:bg-purple-500/30">
             {/* Background */}
             <div className="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-900/20 blur-[120px] rounded-full mix-blend-screen" />
@@ -126,7 +179,7 @@ export default function ChatPage() {
                 </div>
             </header>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-6 scroll-smooth">
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-6 scroll-smooth overscroll-contain">
                 {messages.length === 0 && !isLoading && (
                     <div className="flex flex-col items-center justify-center h-full text-zinc-500 space-y-4">
                         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center">
@@ -141,7 +194,7 @@ export default function ChatPage() {
                         key={index}
                         className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
                     >
-                        <div className={`flex items-end gap-3 max-w-[85%] sm:max-w-[75%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                        <div className={`flex items-end gap-3 max-w-[90%] sm:max-w-[75%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-lg ${m.role === 'user'
                                 ? 'bg-gradient-to-br from-blue-600 to-blue-700'
                                 : 'bg-gradient-to-br from-purple-600 to-purple-700'
@@ -156,7 +209,24 @@ export default function ChatPage() {
                                     }`}
                             >
                                 <div className="prose prose-invert prose-sm max-w-none leading-relaxed">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkGfm]}
+                                        components={{
+                                            a: ({ node, ...props }) => {
+                                                const href = props.href || '';
+                                                // 観光地詳細へのリンク（/tourism/:id）を検知してカードにする
+                                                if (href.startsWith('/tourism/')) {
+                                                    const spotIdStr = href.split('/').pop() || '';
+                                                    const spotId = parseInt(spotIdStr, 10);
+                                                    if (!isNaN(spotId)) {
+                                                        return <SpotCard spotId={spotId} />;
+                                                    }
+                                                }
+                                                // Default link behavior
+                                                return <a {...props} className="text-purple-400 hover:text-purple-300 underline underline-offset-2" target="_blank" rel="noopener noreferrer" />;
+                                            }
+                                        }}
+                                    >
                                         {m.content}
                                     </ReactMarkdown>
                                 </div>

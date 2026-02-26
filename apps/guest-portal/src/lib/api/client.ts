@@ -1,7 +1,7 @@
 import { Reservation } from '@/types';
 
 // TODO: Move to environment variable
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
 
 export async function getArrivalReservations(date?: string, facilityId?: number): Promise<Reservation[]> {
     try {
@@ -219,3 +219,30 @@ export async function getTourismSpot(id: number): Promise<TourismSpot> {
     return response.json();
 }
 
+
+export interface AmenityRequestItem {
+    amenity_id: number;
+    quantity: number;
+}
+
+export interface AmenityRequestPayload {
+    reservation_id: number;
+    items: AmenityRequestItem[];
+    note?: string;
+}
+
+export async function createAmenityRequest(payload: AmenityRequestPayload): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/amenities/requests/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to create amenity request: ${response.statusText}`);
+    }
+
+    return response.json();
+}

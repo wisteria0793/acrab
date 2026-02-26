@@ -4,19 +4,23 @@ import { useState } from 'react';
 import { ArrowLeft, ShoppingBag, Plus, Minus, Check } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { useCheckInStore } from '@/lib/store/check-in';
+import { useLanguageStore } from '@/lib/store/language';
+import { useTranslation } from '@/lib/i18n/dictionaries';
 
-const AMENITIES = [
-    { id: 1, name: 'Face Towel', icon: '🧴' },
-    { id: 2, name: 'Bath Towel', icon: '🛁' },
-    { id: 3, name: 'Toothbrush Set', icon: '🪥' },
-    { id: 4, name: 'Slippers', icon: '👟' },
-    { id: 5, name: 'Coffee Pods', icon: '☕' },
-    { id: 6, name: 'Water Bottle', icon: '💧' },
+type AmenityKey = 'faceTowel' | 'bathTowel' | 'toothbrush';
+
+const AMENITIES: { id: number, key: AmenityKey, icon: string }[] = [
+    { id: 1, key: 'faceTowel', icon: '🧴' },
+    { id: 2, key: 'bathTowel', icon: '🛁' },
+    { id: 3, key: 'toothbrush', icon: '🪥' },
 ];
 
 export default function AmenitiesPage() {
     const [cart, setCart] = useState<{ [key: number]: number }>({});
     const [requested, setRequested] = useState(false);
+    const { language } = useLanguageStore();
+    const t = useTranslation(language).amenityPage;
 
     const updateQuantity = (id: number, delta: number) => {
         setCart(prev => {
@@ -30,12 +34,40 @@ export default function AmenitiesPage() {
         });
     };
 
-    const handleRequest = () => {
+    const { booking } = useCheckInStore(); // Get booking from store
+
+    const handleRequest = async () => {
         setRequested(true);
+
+        try {
+            if (booking?.id) {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+
+                // Convert cart to API payload format
+                const items = Object.entries(cart).map(([id, quantity]) => ({
+                    amenity_id: parseInt(id),
+                    quantity: quantity
+                }));
+
+                if (items.length > 0) {
+                    await fetch(`${apiUrl}/amenity-requests/`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            reservation: booking.id,
+                            items: items
+                        })
+                    });
+                }
+            }
+        } catch (error) {
+            console.error("Amenity request failed", error);
+        }
+
         setTimeout(() => {
             setCart({});
             setRequested(false);
-            alert('Amenities requested! Staff will bring them shortly.');
+            alert(t.successMsg);
         }, 2000);
     };
 
@@ -47,7 +79,7 @@ export default function AmenitiesPage() {
                 <Link href="/" className="glass-button w-10 h-10 rounded-full flex items-center justify-center">
                     <ArrowLeft className="w-5 h-5" />
                 </Link>
-                <h1 className="text-2xl font-bold">Amenities</h1>
+                <h1 className="text-2xl font-bold">{t.title}</h1>
             </header>
 
             <div className="grid grid-cols-1 gap-4">
@@ -60,7 +92,7 @@ export default function AmenitiesPage() {
                     >
                         <div className="flex items-center gap-4">
                             <span className="text-3xl">{item.icon}</span>
-                            <span className="font-medium">{item.name}</span>
+                            <span className="font-medium">{t.items[item.key]}</span>
                         </div>
 
                         <div className="flex items-center gap-3 bg-white/5 rounded-full p-1">
@@ -90,11 +122,11 @@ export default function AmenitiesPage() {
                 >
                     {requested ? (
                         <>
-                            <Check className="w-5 h-5" /> Requesting...
+                            <Check className="w-5 h-5" /> {t.requestingBtn}
                         </>
                     ) : (
                         <>
-                            <ShoppingBag className="w-5 h-5" /> Request {totalItems > 0 ? `(${totalItems})` : ''}
+                            <ShoppingBag className="w-5 h-5" /> {t.requestBtn} {totalItems > 0 ? `(${totalItems})` : ''}
                         </>
                     )}
                 </button>

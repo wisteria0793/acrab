@@ -21,9 +21,11 @@ interface CheckInState {
     isCheckedIn: boolean; // Flag to track if check-in is fully completed
     booking: Reservation | null;
     guestDetails: Guest;
+    facilityId: number | null; // Facility context from QR code
 
     setStep: (step: CheckInStep) => void;
     setBooking: (booking: Reservation) => void;
+    setFacilityId: (id: number | null) => void;
     updateGuestDetails: (details: Partial<Guest>) => void;
     completeCheckIn: () => void;
     reset: () => void;
@@ -35,6 +37,7 @@ export const useCheckInStore = create<CheckInState>()(
             currentStep: 'identify',
             isCheckedIn: false,
             booking: null,
+            facilityId: null,
             guestDetails: {
                 name: '',
                 email: '',
@@ -46,6 +49,7 @@ export const useCheckInStore = create<CheckInState>()(
 
             setStep: (step) => set({ currentStep: step }),
             setBooking: (booking) => set({ booking }),
+            setFacilityId: (id) => set({ facilityId: id }),
             updateGuestDetails: (details) =>
                 set((state) => ({ guestDetails: { ...state.guestDetails, ...details } })),
             completeCheckIn: () => set({ isCheckedIn: true, currentStep: 'complete' }),
@@ -53,6 +57,7 @@ export const useCheckInStore = create<CheckInState>()(
                 currentStep: 'identify',
                 isCheckedIn: false,
                 booking: null,
+                facilityId: null,
                 guestDetails: {
                     name: '',
                     email: '',

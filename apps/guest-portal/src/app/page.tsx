@@ -32,16 +32,80 @@ const item = {
   show: { opacity: 1, y: 0 }
 };
 
+import { useSearchParams } from 'next/navigation';
+
 export default function Home() {
-  const { isCheckedIn } = useCheckInStore();
+  const { isCheckedIn, booking, setFacilityId } = useCheckInStore();
   const { language } = useLanguageStore();
   const t = useTranslation(language);
   const [mounted, setMounted] = useState(false);
+  const searchParams = useSearchParams();
 
   // Prevent hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Capture facility ID and language from URL
+  useEffect(() => {
+    const fid = searchParams.get('fid') || searchParams.get('facility_id');
+    const langParam = searchParams.get('lang');
+
+    if (fid) {
+      setFacilityId(parseInt(fid, 10));
+    }
+
+    if (langParam) {
+      // @ts-ignore - Assuming useLanguageStore has a setLanguage method or similar. 
+      // If it doesn't, we might need to rely on the language selector's internal state.
+      // Based on typical zustand setups:
+      useLanguageStore.setState({ language: langParam });
+    }
+  }, [searchParams, setFacilityId]);
+
+  // Trigger Check-in Notification when accessing Dashboard after check-in
+  useEffect(() => {
+    const notifyCheckIn = async () => {
+      console.log('DEBUG: Checking check-in status', { isCheckedIn, bookingId: booking?.id, mounted });
+
+      if (isCheckedIn && booking?.id) {
+        const notifiedKey = `notified_checkin_v2_${booking.id}`;
+        const hasNotified = sessionStorage.getItem(notifiedKey);
+        console.log(`DEBUG: Notification key ${notifiedKey}: ${hasNotified}`);
+
+        if (!hasNotified) {
+          try {
+            console.log('DEBUG: Attempting to send check-in notification...');
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+            const response = await fetch(`${apiUrl}/reservations/webhooks/guest_info/`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ reservation_id: booking.id })
+            });
+
+            console.log('DEBUG: API Response status:', response.status);
+
+            if (response.ok) {
+              sessionStorage.setItem(notifiedKey, 'true');
+              console.log('Check-in notification sent successfully');
+            } else {
+              console.error('Failed to send check-in notification:', response.status);
+            }
+          } catch (e) {
+            console.error("Failed to notify check-in", e);
+          }
+        } else {
+          console.log('DEBUG: Already notified for this session.');
+        }
+      } else {
+        console.log('DEBUG: Not checked in or no booking ID.');
+      }
+    };
+
+    if (mounted) {
+      notifyCheckIn();
+    }
+  }, [isCheckedIn, booking, mounted]);
 
   if (!mounted) return null;
 
