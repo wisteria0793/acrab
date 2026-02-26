@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  basePath: '/portal',
+  basePath: '/kiosk',
 };
 
 export default nextConfig;
