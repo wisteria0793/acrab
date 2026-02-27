@@ -467,7 +467,7 @@ export default function KioskPage() {
             <div className="flex justify-between items-center px-12 py-8 bg-black/20 backdrop-blur-sm border-b border-white/5">
               <div className="flex flex-col">
                 <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-                  {activeGuide.facility_name}
+                  Welcome
                 </h2>
                 <div className="text-neutral-400 text-lg md:text-xl font-medium mt-1">
                   Enjoy your stay
@@ -681,7 +681,7 @@ export default function KioskPage() {
                     <Info size={48} />
                   </div>
                   <h2 className="text-6xl font-bold text-white tracking-tight">
-                    {selectedLang !== 'ja' && selectedRule.translations?.[selectedLang]?.title
+                    {(selectedLang !== 'ja' && selectedRule.translations && selectedRule.translations[selectedLang]?.title)
                       ? selectedRule.translations[selectedLang].title
                       : selectedRule.title}
                   </h2>
@@ -693,7 +693,7 @@ export default function KioskPage() {
                 <div className="max-w-6xl mx-auto space-y-16">
                   <div className="prose prose-invert max-w-none">
                     <p className="text-5xl md:text-6xl leading-[1.6] text-neutral-200 whitespace-pre-line font-light">
-                      {selectedLang !== 'ja' && selectedRule.translations?.[selectedLang]?.description
+                      {(selectedLang !== 'ja' && selectedRule.translations && selectedRule.translations[selectedLang]?.description)
                         ? selectedRule.translations[selectedLang].description
                         : selectedRule.description}
                     </p>
@@ -846,14 +846,14 @@ export default function KioskPage() {
                               {index + 1}
                             </span>
                             <h4 className="text-2xl font-medium text-white">
-                              {selectedLang !== 'ja' && rule.translations?.[selectedLang]?.title
+                              {(selectedLang !== 'ja' && rule.translations && rule.translations[selectedLang]?.title)
                                 ? rule.translations[selectedLang].title
                                 : rule.title}
                             </h4>
                           </div>
 
                           <p className="text-neutral-300 text-xl leading-relaxed whitespace-pre-line mb-6 ml-14">
-                            {selectedLang !== 'ja' && rule.translations?.[selectedLang]?.description
+                            {(selectedLang !== 'ja' && rule.translations && rule.translations[selectedLang]?.description)
                               ? rule.translations[selectedLang].description
                               : rule.description}
                           </p>
