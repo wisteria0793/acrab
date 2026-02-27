@@ -466,12 +466,12 @@ export default function KioskPage() {
             {/* 滞在モード用ヘッダー */}
             <div className="flex justify-between items-center px-12 py-8 bg-black/20 backdrop-blur-sm border-b border-white/5">
               <div className="flex flex-col">
-                <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
+                {/* <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
                   Welcome
                 </h2>
                 <div className="text-neutral-400 text-lg md:text-xl font-medium mt-1">
                   Enjoy your stay
-                </div>
+                </div> */}
               </div>
 
               <div className="flex gap-4">
