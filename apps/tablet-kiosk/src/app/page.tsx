@@ -489,12 +489,6 @@ export default function KioskPage() {
                     </button>
                   ))}
                 </div>
-                <button
-                  onClick={handleReset}
-                  className="px-6 py-2 bg-neutral-900 border border-neutral-800 text-neutral-400 rounded-full text-sm hover:bg-neutral-800 hover:text-white transition-all"
-                >
-                  {selectedLang === 'ja' ? '終了' : 'End'}
-                </button>
               </div>
             </div>
 
@@ -587,15 +581,19 @@ export default function KioskPage() {
                 </button>
 
                 {/* 右：周辺マップ */}
-                <button
-                  className="bg-orange-600/10 border border-orange-500/30 hover:bg-orange-600/20 hover:border-orange-500/50 transition-all duration-300 p-8 flex flex-col items-center justify-center gap-4 rounded-3xl group cursor-not-allowed opacity-80 h-full min-h-[200px]"
+                <div
+                  className="bg-orange-600/10 border border-orange-500/30 p-8 flex flex-col items-center justify-center gap-4 rounded-3xl group cursor-not-allowed opacity-60 h-full min-h-[200px]"
                 >
-                  <div className="p-5 bg-orange-500/20 rounded-full text-orange-400 group-hover:scale-105 transition-all duration-300">
+                  <div className="p-5 bg-orange-500/20 rounded-full text-orange-400 transition-all duration-300">
                     <Map size={48} />
                   </div>
-                  <span className="text-2xl font-medium text-orange-100 tracking-wide">{translate('nearbyMapBtn', selectedLang)}</span>
-                  <span className="text-base text-orange-400/70">{translate('preparing', selectedLang)}</span>
-                </button>
+                  <div className="flex flex-col items-center justify-center h-full gap-4">
+                    <span className="text-2xl font-medium text-orange-100 tracking-wide">{translate('nearbyMapBtn', selectedLang)}</span>
+                    <div className="text-center">
+                      <p className="text-sm text-orange-300/80 font-medium">{selectedLang === 'ja' ? '現在準備中です' : 'Coming Soon'}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </main>
           </motion.div>
